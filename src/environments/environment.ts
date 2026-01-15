@@ -1,3 +1,3 @@
 export const environment = {
-  deepLinkHost: 'km.vtmoney.vn'
+  deepLinkHost: 'viettelpay'
 };
