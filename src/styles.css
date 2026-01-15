@@ -1,0 +1,42 @@
+:root {
+  --brand: #ee0033;
+  --brand-hover: #b80027;
+  --brand-focus: #ffd1d9;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.deep-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.deep-link:hover {
+  background: var(--brand-hover);
+}
+
+.deep-link:focus-visible {
+  outline: 3px solid var(--brand-focus);
+  outline-offset: 2px;
+}
