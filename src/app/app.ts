@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 import { environment } from '../environments/environment';
 
@@ -8,7 +9,11 @@ import { environment } from '../environments/environment';
   styleUrl: './app.css'
 })
 export class App {
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly deepLink = signal(this.buildDeepLink());
+  protected readonly safeDeepLink = computed<SafeUrl>(() =>
+    this.sanitizer.bypassSecurityTrustUrl(this.deepLink())
+  );
 
   private buildDeepLink(): string {
     const base = `${environment.deepLinkHost}://`;
@@ -25,13 +30,26 @@ export class App {
       pathSegments.unshift('action');
     }
 
-    const infoQuery = this.extractInfoQuery(search);
+    const query = this.extractInfoQuery(search);
 
-    return `${base}${pathSegments.join('/')}${infoQuery}`;
+    return `${base}${pathSegments.join('/')}${query}`;
   }
 
   private extractInfoQuery(search: string): string {
     const match = search.match(/[?&]info=([^&]*)/);
-    return match ? `?info=${match[1]}` : '';
+    if (!match) {
+      return '';
+    }
+    const rawInfo = match[1];
+    const decodedInfo = this.safeDecodeURIComponent(rawInfo);
+    return `?info=${encodeURIComponent(decodedInfo)}`;
+  }
+
+  private safeDecodeURIComponent(value: string): string {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
   }
 }
