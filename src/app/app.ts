@@ -98,7 +98,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   private buildDeepLink(): string {
-    const base = `${environment.deepLinkHost}://`;
+    const base = this.buildDeepLinkBase();
 
     if (typeof window === 'undefined') {
       return base;
@@ -114,12 +114,55 @@ export class App implements OnInit, OnDestroy {
 
     const infoQuery = this.extractInfoQuery(search);
 
-    return `${base}${pathSegments.join('/')}${infoQuery}`;
+    const path = this.normalizePathSegments(pathSegments).join('/');
+    if (!path) {
+      return `${base}${infoQuery}`;
+    }
+
+    const separator = base.endsWith('://') ? '' : '/';
+    return `${base}${separator}${path}${infoQuery}`;
   }
 
   private extractInfoQuery(search: string): string {
     const match = search.match(/[?&]info=([^&]*)/);
     return match ? `?info=${match[1]}` : '';
+  }
+
+  private normalizePathSegments(segments: string[]): string[] {
+    const normalized: string[] = [];
+
+    for (let index = 0; index < segments.length; index += 1) {
+      const current = segments[index];
+      const next = segments[index + 1];
+
+      if ((current === 'https:' || current === 'http:') && next) {
+        normalized.push(`${current}//${next}`);
+        index += 1;
+        continue;
+      }
+
+      normalized.push(current);
+    }
+
+    return normalized;
+  }
+
+  private buildDeepLinkBase(): string {
+    const rawHost = environment.deepLinkHost.trim();
+    const normalizedHost = rawHost.replace(
+      /^([a-z][a-z0-9+.-]*):\/(?!\/)/i,
+      '$1://'
+    );
+
+    if (normalizedHost.includes('://')) {
+      if (normalizedHost.endsWith('://')) {
+        return normalizedHost;
+      }
+      return normalizedHost.replace(/\/+$/, '');
+    }
+
+    const scheme = normalizedHost.replace(/:+$/, '');
+    return `${scheme}://`;
   }
 
   private getPlatform(): Platform | null {
